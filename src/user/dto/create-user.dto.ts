@@ -14,4 +14,7 @@ export class CreateUserDto {
     @IsString()
     @MinLength(8, {message : "Minimal panjang password adalah 8 karakter"})
     password! : string;
+
+    @IsString()
+    role! : string;
 }
