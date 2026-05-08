@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProdukModule } from './produk/produk.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -20,7 +19,6 @@ import { UserModule } from './user/user.module';
     entities : [],
     synchronize : true
   }),
-  ProdukModule,
   UserModule
 ],
   controllers: [AppController],
