@@ -1,4 +1,6 @@
 import { IsEmail, IsString, MinLength } from "class-validator";
+import { BeforeInsert } from "typeorm";
+import * as Bcrypt from 'bcrypt'
 
 export class CreateUserDto {
     @IsEmail({}, {message : "Format email salah"})
@@ -17,4 +19,11 @@ export class CreateUserDto {
 
     @IsString()
     role! : string;
+
+    @BeforeInsert()
+    async hashPassword() {
+        const salt = await Bcrypt.genSalt()
+        this.password = await Bcrypt.hash(this.password, salt);
+    }
+
 }
