@@ -19,11 +19,15 @@ export class UserService {
   }
 
   findAll() {
-    return this.userRepository.find();
+    return this.userRepository.find({
+      select : ['firstName', 'lastName', 'email', 'role']
+    });
   }
 
   findOne(id: number) {
-    const user =  this.userRepository.findOne({where : {id : id}});
+    const user =  this.userRepository.findOne({where : {id : id},
+    select : ['firstName', 'lastName', 'email', 'role']
+    });
 
     if(!user) {
       throw new NotFoundException("User tidak ditemukan");
@@ -31,10 +35,23 @@ export class UserService {
     return user;
   }
 
+  findByEmail(email : string) {
+    const user = this.userRepository.findOne({where : {email}});
+
+    if(!user) {
+      throw new NotFoundException(`User dengan email ${email} tidak ditemukan`);
+    }
+
+    return user;
+
+  }
+
   update(id: number, updateUserDto: UpdateUserDto) {
     this.userRepository.update(id, updateUserDto);
 
-    const newData = this.userRepository.findOne({where : {id}});
+    const newData = this.userRepository.findOne({where : {id},
+    select : ['firstName', 'lastName', 'email', 'role']
+    });
 
     if (!newData) {
       throw new NotFoundException("User tidak ditemukan");
@@ -54,7 +71,9 @@ export class UserService {
     const userData = this.userRepository.find({where : {
       firstName : Like(nama),
       lastName : Like(nama)
-    }})
+    }, 
+    select : ['firstName', 'lastName', 'email', 'role']
+  })
 
     if(!userData) {
       throw new NotFoundException("Hasil tidak ditemukan");

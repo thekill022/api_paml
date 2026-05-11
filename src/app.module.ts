@@ -4,10 +4,12 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
+import { User } from './user/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
-    envFilePath : "../.env"
+    envFilePath : ".env"
   }),
   TypeOrmModule.forRoot({
     type : 'mysql',
@@ -16,10 +18,12 @@ import { UserModule } from './user/user.module';
     username : process.env.USER,
     password : process.env.PASS,
     database : process.env.DB,
-    entities : [],
-    synchronize : true
+    entities : [User],
+    synchronize : true,
+    logging : true
   }),
-  UserModule
+  UserModule,
+  AuthModule
 ],
   controllers: [AppController],
   providers: [AppService],
