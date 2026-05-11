@@ -67,12 +67,12 @@ export class UserService {
     }
   }
 
-  search(nama : string) {
-    const userData = this.userRepository.find({where : {
-      firstName : Like(nama),
-      lastName : Like(nama)
-    }, 
-    select : ['firstName', 'lastName', 'email', 'role']
+  async search(nama : string) {
+    const userData = await this.userRepository.find({where : [
+      {firstName : Like(nama)},
+      {lastName : Like(nama)},
+      {email : Like(nama)}],
+      select : ['firstName', 'lastName', 'email', 'role']
   })
 
     if(!userData) {
