@@ -26,6 +26,11 @@ export class KategoriController {
     return this.kategoriService.findOne(+id);
   }
 
+  @Get('/search/:nama')
+  findByName(@Param('nama') nama : string) {
+    return this.kategoriService.findByName(nama);
+  }
+
   @Patch(':id')
   @RoleAdmin()
   @UseGuards(KategoriGuard)
