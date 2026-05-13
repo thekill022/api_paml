@@ -38,6 +38,16 @@ export class KatalogController {
     return this.katalogService.findOne(+id);
   }
 
+  @Get(':nama')
+  findByName(@Param('nama') nama : string) {
+    return this.katalogService.findByName(nama);
+  }
+
+  @Get(':kategori')
+  findByKategori(@Param('kategori') kategori : number) {
+    return this.katalogService.findByKategori(kategori);
+  }
+
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file', {
     storage : diskStorage({
