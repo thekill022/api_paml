@@ -8,6 +8,8 @@ import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { KategoriModule } from './kategori/kategori.module';
 import { Kategori } from './kategori/entities/kategori.entity';
+import { KatalogModule } from './katalog/katalog.module';
+import { Katalog } from './katalog/entities/katalog.entity';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -20,13 +22,14 @@ import { Kategori } from './kategori/entities/kategori.entity';
     username : process.env.USER,
     password : process.env.PASS,
     database : process.env.DB,
-    entities : [User, Kategori],
+    entities : [User, Kategori, Katalog],
     synchronize : true,
     logging : true
   }),
   UserModule,
   AuthModule,
-  KategoriModule
+  KategoriModule,
+  KatalogModule
 ],
   controllers: [AppController],
   providers: [AppService],
