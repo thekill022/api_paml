@@ -78,6 +78,11 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
                   final booking = bookings[index];
                   return _BookingTile(
                     booking: booking,
+                    onEdit:
+                        booking.isActive
+                            ? () => _openForm(context, booking: booking)
+                            : null,
+                    onDelete: () => _confirmDelete(context, booking),
                     onReturn:
                         booking.isActive
                             ? () => _returnEarly(context, booking)
@@ -92,12 +97,69 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
     );
   }
 
-  Future<void> _openForm(BuildContext context) async {
+  Future<void> _openForm(BuildContext context, {BookingModel? booking}) async {
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => const BookingFormPage()),
+      MaterialPageRoute(builder: (_) => BookingFormPage(booking: booking)),
     );
     if (changed == true && mounted) _refresh();
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    BookingModel booking,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            titlePadding: const EdgeInsets.fromLTRB(20, 14, 12, 0),
+            contentPadding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            actionsPadding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            title: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Hapus booking?',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Tutup',
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+            content: Text(
+              'Booking ${booking.customerName} untuk ${booking.katalog?.nama ?? 'mobil'} akan dihapus.',
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.error,
+                  ),
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Hapus'),
+                ),
+              ),
+            ],
+          ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _repository.deleteBooking(booking.id);
+      if (!mounted) return;
+      _snack(this.context, 'Booking berhasil dihapus');
+      _refresh();
+    } on BookingException catch (error) {
+      if (mounted) _snack(this.context, error.message);
+    } catch (_) {
+      if (mounted) _snack(this.context, 'Tidak dapat terhubung ke server');
+    }
   }
 
   Future<void> _returnEarly(BuildContext context, BookingModel booking) async {
@@ -134,7 +196,9 @@ class _BookingManagementPageState extends State<BookingManagementPage> {
 }
 
 class BookingFormPage extends StatefulWidget {
-  const BookingFormPage({super.key});
+  const BookingFormPage({super.key, this.booking});
+
+  final BookingModel? booking;
 
   @override
   State<BookingFormPage> createState() => _BookingFormPageState();
@@ -152,11 +216,24 @@ class _BookingFormPageState extends State<BookingFormPage> {
   AvailabilityResult? _availability;
   bool _checking = false;
   bool _submitting = false;
+  bool get _isEdit => widget.booking != null;
 
   @override
   void initState() {
     super.initState();
     _katalogFuture = KatalogRepository().fetchByStatus(true);
+    final booking = widget.booking;
+    if (booking != null) {
+      _customerNameController.text = booking.customerName;
+      _phoneController.text = booking.customerPhone ?? '';
+      _katalogId = booking.katalog?.id;
+      _startDate = DateTime.tryParse(booking.startDate);
+      _endDate = DateTime.tryParse(booking.endDate);
+      _availability = const AvailabilityResult(
+        available: true,
+        bookedRanges: [],
+      );
+    }
   }
 
   @override
@@ -231,13 +308,24 @@ class _BookingFormPageState extends State<BookingFormPage> {
 
     setState(() => _submitting = true);
     try {
-      await _bookingRepository.createBooking(
-        katalogId: _katalogId!,
-        customerName: _customerNameController.text.trim(),
-        customerPhone: _phoneController.text.trim(),
-        startDate: _formatDate(_startDate!),
-        endDate: _formatDate(_endDate!),
-      );
+      if (_isEdit) {
+        await _bookingRepository.updateBooking(
+          id: widget.booking!.id,
+          katalogId: _katalogId!,
+          customerName: _customerNameController.text.trim(),
+          customerPhone: _phoneController.text.trim(),
+          startDate: _formatDate(_startDate!),
+          endDate: _formatDate(_endDate!),
+        );
+      } else {
+        await _bookingRepository.createBooking(
+          katalogId: _katalogId!,
+          customerName: _customerNameController.text.trim(),
+          customerPhone: _phoneController.text.trim(),
+          startDate: _formatDate(_startDate!),
+          endDate: _formatDate(_endDate!),
+        );
+      }
       if (mounted) Navigator.pop(context, true);
     } on BookingException catch (error) {
       if (mounted) _snack(error.message);
@@ -251,7 +339,7 @@ class _BookingFormPageState extends State<BookingFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Booking')),
+      appBar: AppBar(title: Text(_isEdit ? 'Edit Booking' : 'Tambah Booking')),
       body: SafeArea(
         child: FutureBuilder<List<KatalogModel>>(
           future: _katalogFuture,
@@ -365,7 +453,9 @@ class _BookingFormPageState extends State<BookingFormPage> {
                                   color: Colors.white,
                                 ),
                               )
-                              : const Text('Simpan Booking'),
+                              : Text(
+                                _isEdit ? 'Simpan Booking' : 'Simpan Booking',
+                              ),
                     ),
                   ],
                 ),
@@ -387,9 +477,16 @@ class _BookingFormPageState extends State<BookingFormPage> {
 }
 
 class _BookingTile extends StatelessWidget {
-  const _BookingTile({required this.booking, required this.onReturn});
+  const _BookingTile({
+    required this.booking,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onReturn,
+  });
 
   final BookingModel booking;
+  final VoidCallback? onEdit;
+  final VoidCallback onDelete;
   final VoidCallback? onReturn;
 
   @override
@@ -434,6 +531,24 @@ class _BookingTile extends StatelessWidget {
             const SizedBox(height: 6),
             Text('Dikembalikan: ${booking.actualReturnDate}'),
           ],
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (onEdit != null)
+                OutlinedButton.icon(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('Edit'),
+                ),
+              OutlinedButton.icon(
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline_rounded),
+                label: const Text('Hapus'),
+              ),
+            ],
+          ),
           if (onReturn != null) ...[
             const SizedBox(height: 12),
             SizedBox(

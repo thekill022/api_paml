@@ -69,6 +69,33 @@ class BookingRepository {
     }
   }
 
+  Future<void> updateBooking({
+    required int id,
+    required int katalogId,
+    required String customerName,
+    required String customerPhone,
+    required String startDate,
+    required String endDate,
+  }) async {
+    final response = await http.patch(
+      ApiConstants.uri('/booking/$id'),
+      headers: await _jsonAuthHeaders(),
+      body: jsonEncode({
+        'katalogId': katalogId,
+        'customerName': customerName,
+        'customerPhone': customerPhone,
+        'startDate': startDate,
+        'endDate': endDate,
+      }),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw BookingException(
+        _message(_decode(response.body), 'Gagal mengubah booking'),
+      );
+    }
+  }
+
   Future<void> returnEarly({
     required int id,
     required String actualReturnDate,
@@ -82,6 +109,19 @@ class BookingRepository {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw BookingException(
         _message(_decode(response.body), 'Gagal mengembalikan mobil'),
+      );
+    }
+  }
+
+  Future<void> deleteBooking(int id) async {
+    final response = await http.delete(
+      ApiConstants.uri('/booking/$id'),
+      headers: await _authHeaders(),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw BookingException(
+        _message(_decode(response.body), 'Gagal menghapus booking'),
       );
     }
   }
