@@ -119,16 +119,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           controller: _lastNameController,
                           textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
-                            labelText: 'Nama belakang',
+                            labelText: 'Nama belakang (Optional)',
                             prefixIcon: Icon(Icons.badge_outlined),
                           ),
-                          validator: (value) {
-                            final text = value?.trim() ?? '';
-                            if (text.isEmpty) {
-                              return 'Nama belakang wajib diisi';
-                            }
-                            return null;
-                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
