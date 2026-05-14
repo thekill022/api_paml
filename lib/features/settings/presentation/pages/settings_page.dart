@@ -92,7 +92,7 @@ class SettingsPage extends StatelessWidget {
       builder:
           (_) => const _ConfirmActionDialog(
             title: 'Logout?',
-            message: 'Session superadmin akan dihapus dari perangkat.',
+            message: 'Session akun akan dihapus dari perangkat.',
             actionLabel: 'Logout',
             actionColor: AppTheme.error,
           ),

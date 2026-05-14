@@ -36,6 +36,14 @@ class HomePage extends StatelessWidget {
           appBar: AppBar(
             title: const Text('DriveEase'),
             actions: [
+              if (session != null && !session.canManageOperations)
+                IconButton(
+                  tooltip: 'Pengaturan akun',
+                  onPressed: () {
+                    Navigator.pushNamed(context, SettingsPage.routeName);
+                  },
+                  icon: const Icon(Icons.settings_rounded),
+                ),
               IconButton(
                 tooltip: 'Logout',
                 onPressed: () {
