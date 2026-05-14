@@ -8,6 +8,7 @@ import '../../../auth/presentation/pages/login_page.dart';
 import '../../../booking/presentation/pages/booking_management_page.dart';
 import '../../../katalog/presentation/pages/katalog_management_page.dart';
 import '../../../kategori/presentation/pages/kategori_management_page.dart';
+import '../../../member/presentation/pages/member_home_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../user/presentation/pages/user_management_page.dart';
 
@@ -49,7 +50,7 @@ class HomePage extends StatelessWidget {
                   ? const Center(child: CircularProgressIndicator())
                   : session.canManageOperations
                   ? _AdminHome(session: session)
-                  : _BasicHome(session: session),
+                  : const MemberHomePage(),
         );
       },
     );
@@ -124,27 +125,6 @@ class _AdminHome extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BasicHome extends StatelessWidget {
-  const _BasicHome({required this.session});
-
-  final AuthSession session;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: _WelcomePanel(
-          title: 'Halo, ${session.fullName}',
-          subtitle:
-              'Dashboard untuk role ${session.role} akan dibuat setelah menu superadmin selesai.',
-          role: session.role,
-        ),
       ),
     );
   }

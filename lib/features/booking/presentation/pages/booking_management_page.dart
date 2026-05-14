@@ -253,16 +253,26 @@ class _BookingFormPageState extends State<BookingFormPage> {
     if (value == null) return;
     setState(() {
       _startDate = value;
-      if (_endDate != null && _endDate!.isBefore(value)) _endDate = value;
+      final minimumEndDate = value.add(const Duration(days: 1));
+      if (_endDate == null || !_endDate!.isAfter(value)) {
+        _endDate = minimumEndDate;
+      }
       _availability = null;
     });
   }
 
   Future<void> _pickEndDate() async {
+    final minimumEndDate =
+        _startDate?.add(const Duration(days: 1)) ??
+        DateTime.now().add(const Duration(days: 1));
+    final initialDate =
+        _endDate != null && !_endDate!.isBefore(minimumEndDate)
+            ? _endDate!
+            : minimumEndDate;
     final value = await showDatePicker(
       context: context,
-      initialDate: _endDate ?? _startDate ?? DateTime.now(),
-      firstDate: _startDate ?? DateTime.now(),
+      initialDate: initialDate,
+      firstDate: minimumEndDate,
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (value == null) return;
@@ -275,6 +285,10 @@ class _BookingFormPageState extends State<BookingFormPage> {
   Future<void> _checkAvailability() async {
     if (_katalogId == null || _startDate == null || _endDate == null) {
       _snack('Pilih mobil dan tanggal terlebih dahulu');
+      return;
+    }
+    if (!_endDate!.isAfter(_startDate!)) {
+      _snack('Sewa minimal 1 malam');
       return;
     }
     setState(() => _checking = true);
@@ -300,6 +314,10 @@ class _BookingFormPageState extends State<BookingFormPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_katalogId == null || _startDate == null || _endDate == null) {
       _snack('Mobil dan tanggal wajib dipilih');
+      return;
+    }
+    if (!_endDate!.isAfter(_startDate!)) {
+      _snack('Sewa minimal 1 malam');
       return;
     }
     if (_availability?.available != true) {
