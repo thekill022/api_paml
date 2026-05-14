@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/auth_session.dart';
 import '../../data/auth_repository.dart';
 
 part 'auth_event.dart';
@@ -19,8 +20,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
     await Future<void>.delayed(const Duration(milliseconds: 700));
-    final token = await _authRepository.getSavedToken();
-    emit(token == null ? const AuthUnauthenticated() : const Authenticated());
+    try {
+      final session = await _authRepository.getSavedSession();
+      emit(
+        session == null ? const AuthUnauthenticated() : Authenticated(session),
+      );
+    } on AuthException {
+      await _authRepository.logout();
+      emit(const AuthUnauthenticated());
+    }
   }
 
   Future<void> _onLoginSubmitted(
@@ -29,8 +37,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
     try {
-      await _authRepository.login(email: event.email, password: event.password);
-      emit(const Authenticated());
+      final session = await _authRepository.login(
+        email: event.email,
+        password: event.password,
+      );
+      emit(Authenticated(session));
     } on AuthException catch (error) {
       emit(AuthFailure(error.message));
       emit(const AuthUnauthenticated());

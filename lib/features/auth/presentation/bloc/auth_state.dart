@@ -16,7 +16,12 @@ class AuthLoading extends AuthState {
 }
 
 class Authenticated extends AuthState {
-  const Authenticated();
+  const Authenticated(this.session);
+
+  final AuthSession session;
+
+  @override
+  List<Object?> get props => [session];
 }
 
 class AuthUnauthenticated extends AuthState {

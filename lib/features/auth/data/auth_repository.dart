@@ -4,16 +4,22 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/api_constants.dart';
+import 'auth_session.dart';
 
 class AuthRepository {
   static const _tokenKey = 'driveease_access_token';
 
-  Future<String?> getSavedToken() async {
+  Future<AuthSession?> getSavedSession() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    final token = prefs.getString(_tokenKey);
+    if (token == null || token.isEmpty) return null;
+    return _sessionFromToken(token);
   }
 
-  Future<void> login({required String email, required String password}) async {
+  Future<AuthSession> login({
+    required String email,
+    required String password,
+  }) async {
     final response = await http.post(
       ApiConstants.uri('/auth/login'),
       headers: {'Content-Type': 'application/json'},
@@ -32,6 +38,8 @@ class AuthRepository {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
+
+    return _sessionFromToken(token);
   }
 
   Future<void> registerMember({
@@ -80,6 +88,27 @@ class AuthRepository {
     if (message is String && message.isNotEmpty) return message;
     if (message is List && message.isNotEmpty) return message.join('\n');
     return fallback;
+  }
+
+  AuthSession _sessionFromToken(String token) {
+    final parts = token.split('.');
+    if (parts.length != 3) {
+      throw const AuthException('Format token tidak valid');
+    }
+
+    final payload = utf8.decode(
+      base64Url.decode(base64Url.normalize(parts[1])),
+    );
+    final data = _decodeBody(payload);
+
+    return AuthSession(
+      token: token,
+      userId: data['userId'] is int ? data['userId'] as int : null,
+      firstName: data['firstName'] as String? ?? '',
+      lastName: data['lastName'] as String? ?? '',
+      email: data['email'] as String? ?? '',
+      role: data['role'] as String? ?? 'member',
+    );
   }
 }
 
