@@ -23,9 +23,14 @@ export class BookingService {
     });
   }
 
-  async checkAvailability(katalogId: number, startDate: string, endDate: string) {
+  async checkAvailability(
+    katalogId: number,
+    startDate: string,
+    endDate: string,
+    excludeId?: number,
+  ) {
     this.validateDateRange(startDate, endDate);
-    const conflicts = await this.findConflicts(katalogId, startDate, endDate);
+    const conflicts = await this.findConflicts(katalogId, startDate, endDate, excludeId);
 
     return {
       available: conflicts.length === 0,
