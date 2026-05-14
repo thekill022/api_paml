@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../../user/presentation/pages/user_management_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -222,7 +223,7 @@ class _MenuTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => _showComingSoon(context, item.title),
+        onTap: () => _handleTap(context),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -270,10 +271,17 @@ class _MenuTile extends StatelessWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context, String title) {
+  void _handleTap(BuildContext context) {
+    if (item.title == 'Kelola User') {
+      Navigator.pushNamed(context, UserManagementPage.routeName);
+      return;
+    }
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('$title akan dibuat berikutnya')));
+      ..showSnackBar(
+        SnackBar(content: Text('${item.title} akan dibuat berikutnya')),
+      );
   }
 }
 
