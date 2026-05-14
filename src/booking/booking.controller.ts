@@ -4,6 +4,7 @@ import { KategoriGuard } from 'src/kategori/role-kategori.guard';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ReturnBookingDto } from './dto/return-booking.dto';
+import { UpdateBookingDto } from './dto/update-booking.dto';
 
 @Controller('booking')
 @RoleAdmin()
@@ -30,13 +31,18 @@ export class BookingController {
     return this.bookingService.create(createBookingDto);
   }
 
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateBookingDto: UpdateBookingDto) {
+    return this.bookingService.update(+id, updateBookingDto);
+  }
+
   @Patch(':id/return')
   returnEarly(@Param('id') id: string, @Body() returnBookingDto: ReturnBookingDto) {
     return this.bookingService.returnEarly(+id, returnBookingDto);
   }
 
   @Delete(':id')
-  cancel(@Param('id') id: string) {
-    return this.bookingService.cancel(+id);
+  remove(@Param('id') id: string) {
+    return this.bookingService.remove(+id);
   }
 }

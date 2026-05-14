@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { Katalog } from 'src/katalog/entities/katalog.entity';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ReturnBookingDto } from './dto/return-booking.dto';
+import { UpdateBookingDto } from './dto/update-booking.dto';
 import { Booking, BookingStatus } from './entities/booking.entity';
 
 @Injectable()
@@ -93,25 +94,83 @@ export class BookingService {
     }
 
     booking.actualReturnDate = returnBookingDto.actualReturnDate;
+    booking.endDate = returnBookingDto.actualReturnDate;
     booking.status = BookingStatus.RETURNED;
 
     return this.bookingRepository.save(booking);
   }
 
-  async cancel(id: number) {
+  async update(id: number, updateBookingDto: UpdateBookingDto) {
+    const booking = await this.bookingRepository.findOne({
+      where: { id },
+      relations: { katalog: true },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking tidak ditemukan');
+    }
+
+    if (booking.status !== BookingStatus.ACTIVE) {
+      throw new BadRequestException('Hanya booking aktif yang bisa diubah');
+    }
+
+    const katalogId = updateBookingDto.katalogId !== undefined
+      ? Number(updateBookingDto.katalogId)
+      : booking.katalog.id;
+    const startDate = updateBookingDto.startDate ?? booking.startDate;
+    const endDate = updateBookingDto.endDate ?? booking.endDate;
+
+    this.validateDateRange(startDate, endDate);
+
+    const katalog = await this.katalogRepository.findOne({ where: { id: katalogId } });
+    if (!katalog) {
+      throw new NotFoundException('Katalog tidak ditemukan');
+    }
+
+    if (!katalog.status) {
+      throw new BadRequestException('Mobil sedang tidak tersedia');
+    }
+
+    const conflicts = await this.findConflicts(katalogId, startDate, endDate, id);
+    if (conflicts.length > 0) {
+      throw new BadRequestException('Tanggal booking bertumpuk dengan booking aktif');
+    }
+
+    if (updateBookingDto.customerName !== undefined) {
+      booking.customerName = updateBookingDto.customerName;
+    }
+    if (updateBookingDto.customerPhone !== undefined) {
+      booking.customerPhone = updateBookingDto.customerPhone;
+    }
+    booking.startDate = startDate;
+    booking.endDate = endDate;
+    booking.katalog = { id: katalogId } as Katalog;
+
+    return this.bookingRepository.save(booking);
+  }
+
+  async remove(id: number) {
     const booking = await this.bookingRepository.findOne({ where: { id } });
 
     if (!booking) {
       throw new NotFoundException('Booking tidak ditemukan');
     }
 
-    booking.status = BookingStatus.CANCELLED;
-    return this.bookingRepository.save(booking);
+    await this.bookingRepository.delete(id);
+    return {
+      message: 'Berhasil menghapus booking dengan id ' + id,
+    };
   }
 
-  private async findConflicts(katalogId: number, startDate: string, endDate: string) {
+  private async findConflicts(
+    katalogId: number,
+    startDate: string,
+    endDate: string,
+    excludeId?: number,
+  ) {
     return this.bookingRepository.find({
       where: {
+        ...(excludeId ? { id: Not(excludeId) } : {}),
         katalog: { id: katalogId },
         status: BookingStatus.ACTIVE,
         startDate: LessThanOrEqual(endDate),
