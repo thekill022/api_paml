@@ -7,6 +7,7 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/register_page.dart';
 import 'features/auth/presentation/pages/splash_page.dart';
+import 'features/booking/presentation/pages/booking_management_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/katalog/presentation/pages/katalog_management_page.dart';
 import 'features/kategori/presentation/pages/kategori_management_page.dart';
@@ -44,6 +45,8 @@ class DriveEaseApp extends StatelessWidget {
             KatalogManagementPage.routeName:
                 (_) => const KatalogManagementPage(),
             SettingsPage.routeName: (_) => const SettingsPage(),
+            BookingManagementPage.routeName:
+                (_) => const BookingManagementPage(),
           },
         ),
       ),

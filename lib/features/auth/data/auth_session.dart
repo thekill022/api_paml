@@ -22,6 +22,10 @@ class AuthSession {
 
   bool get isSuperadmin => role == 'superadmin';
 
+  bool get isAdmin => role == 'admin';
+
+  bool get canManageOperations => isSuperadmin || isAdmin;
+
   AuthSession copyWith({
     String? firstName,
     String? lastName,

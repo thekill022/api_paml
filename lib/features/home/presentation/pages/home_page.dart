@@ -5,6 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../../booking/presentation/pages/booking_management_page.dart';
 import '../../../katalog/presentation/pages/katalog_management_page.dart';
 import '../../../kategori/presentation/pages/kategori_management_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
@@ -46,8 +47,8 @@ class HomePage extends StatelessWidget {
           body:
               session == null
                   ? const Center(child: CircularProgressIndicator())
-                  : session.isSuperadmin
-                  ? _SuperadminHome(session: session)
+                  : session.canManageOperations
+                  ? _AdminHome(session: session)
                   : _BasicHome(session: session),
         );
       },
@@ -55,13 +56,14 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _SuperadminHome extends StatelessWidget {
-  const _SuperadminHome({required this.session});
+class _AdminHome extends StatelessWidget {
+  const _AdminHome({required this.session});
 
   final AuthSession session;
 
   @override
   Widget build(BuildContext context) {
+    final isSuperadmin = session.isSuperadmin;
     return SafeArea(
       child: CustomScrollView(
         slivers: [
@@ -69,19 +71,35 @@ class _SuperadminHome extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             sliver: SliverToBoxAdapter(
               child: _WelcomePanel(
-                title: 'Halo, ${session.fullName}',
+                title:
+                    isSuperadmin
+                        ? 'Halo, ${session.fullName}'
+                        : 'Dashboard Admin',
                 subtitle:
-                    'Kelola operasional rental, data kendaraan, kategori, dan user dari satu dashboard.',
-                role: 'Superadmin',
+                    isSuperadmin
+                        ? 'Kelola operasional rental, booking, data kendaraan, kategori, dan user dari satu dashboard.'
+                        : 'Pantau booking, ketersediaan mobil, katalog, dan kategori untuk operasional rental harian.',
+                role: session.role,
+                icon:
+                    isSuperadmin
+                        ? Icons.admin_panel_settings_rounded
+                        : Icons.support_agent_rounded,
+                color:
+                    isSuperadmin ? AppTheme.primary : const Color(0xFF0F766E),
               ),
             ),
           ),
-          const SliverPadding(
-            padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
+          if (!isSuperadmin)
+            const SliverPadding(
+              padding: EdgeInsets.fromLTRB(20, 14, 20, 0),
+              sliver: SliverToBoxAdapter(child: _AdminScopePanel()),
+            ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
             sliver: SliverToBoxAdapter(
               child: Text(
-                'Menu Superadmin',
-                style: TextStyle(
+                session.isSuperadmin ? 'Menu Superadmin' : 'Menu Admin',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textPrimary,
@@ -92,7 +110,7 @@ class _SuperadminHome extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             sliver: SliverGrid.builder(
-              itemCount: _superadminMenus.length,
+              itemCount: _menusFor(session).length,
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 220,
                 mainAxisSpacing: 12,
@@ -100,7 +118,7 @@ class _SuperadminHome extends StatelessWidget {
                 childAspectRatio: 1.08,
               ),
               itemBuilder: (context, index) {
-                final item = _superadminMenus[index];
+                final item = _menusFor(session)[index];
                 return _MenuTile(item: item);
               },
             ),
@@ -137,11 +155,15 @@ class _WelcomePanel extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.role,
+    this.icon = Icons.admin_panel_settings_rounded,
+    this.color = AppTheme.primary,
   });
 
   final String title;
   final String subtitle;
   final String role;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +171,7 @@ class _WelcomePanel extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.primary,
+        color: color,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -164,11 +186,7 @@ class _WelcomePanel extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
-                  Icons.admin_panel_settings_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                child: Icon(icon, color: Colors.white, size: 28),
               ),
               const Spacer(),
               Container(
@@ -206,6 +224,34 @@ class _WelcomePanel extends StatelessWidget {
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.84),
               height: 1.45,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminScopePanel extends StatelessWidget {
+  const _AdminScopePanel();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.info_outline_rounded, color: AppTheme.primary),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Admin dapat mengelola booking, kategori, dan katalog. Kelola User hanya tersedia untuk superadmin.',
+              style: TextStyle(color: AppTheme.textSecondary, height: 1.35),
             ),
           ),
         ],
@@ -287,6 +333,10 @@ class _MenuTile extends StatelessWidget {
       Navigator.pushNamed(context, KatalogManagementPage.routeName);
       return;
     }
+    if (item.title == 'Booking') {
+      Navigator.pushNamed(context, BookingManagementPage.routeName);
+      return;
+    }
     if (item.title == 'Pengaturan') {
       Navigator.pushNamed(context, SettingsPage.routeName);
       return;
@@ -334,9 +384,46 @@ const _superadminMenus = [
     color: Color(0xFFF59E0B),
   ),
   _SuperadminMenuItem(
+    title: 'Booking',
+    subtitle: 'Cek tanggal sewa dan pengembalian',
+    icon: Icons.event_available_rounded,
+    color: Color(0xFF7C3AED),
+  ),
+  _SuperadminMenuItem(
     title: 'Pengaturan',
     subtitle: 'Konfigurasi aplikasi DriveEase',
     icon: Icons.settings_rounded,
     color: Color(0xFF475569),
   ),
 ];
+
+const _adminMenus = [
+  _SuperadminMenuItem(
+    title: 'Kelola Kategori',
+    subtitle: 'Atur kategori mobil rental',
+    icon: Icons.category_rounded,
+    color: AppTheme.secondary,
+  ),
+  _SuperadminMenuItem(
+    title: 'Kelola Katalog',
+    subtitle: 'Tambah, edit, dan hapus mobil',
+    icon: Icons.directions_car_filled_rounded,
+    color: Color(0xFFF59E0B),
+  ),
+  _SuperadminMenuItem(
+    title: 'Booking',
+    subtitle: 'Cek tanggal sewa dan pengembalian',
+    icon: Icons.event_available_rounded,
+    color: Color(0xFF7C3AED),
+  ),
+  _SuperadminMenuItem(
+    title: 'Pengaturan',
+    subtitle: 'Konfigurasi aplikasi DriveEase',
+    icon: Icons.settings_rounded,
+    color: Color(0xFF475569),
+  ),
+];
+
+List<_SuperadminMenuItem> _menusFor(AuthSession session) {
+  return session.isSuperadmin ? _superadminMenus : _adminMenus;
+}
