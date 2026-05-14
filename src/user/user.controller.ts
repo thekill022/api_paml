@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from './role/role.decorator';
 import { RoleGuard } from './role/role.guard';
+import { Public } from 'src/auth/decorator/public.decorator';
 
 @Controller('user')
 export class UserController {
@@ -14,6 +15,15 @@ export class UserController {
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
+  }
+
+  @Public()
+  @Post('register')
+  registerMember(@Body() createUserDto: CreateUserDto) {
+    return this.userService.create({
+      ...createUserDto,
+      role: 'member',
+    });
   }
 
   @Get()
