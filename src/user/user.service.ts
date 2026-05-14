@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Like, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as Bcrypt from 'bcrypt'
 
 @Injectable()
 export class UserService {
@@ -47,18 +48,38 @@ export class UserService {
 
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    this.userRepository.update(id, updateUserDto);
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({where : {id}});
 
-    const newData = this.userRepository.findOne({where : {id},
-    select : ['id', 'firstName', 'lastName', 'email', 'role']
-    });
-
-    if (!newData) {
+    if (!user) {
       throw new NotFoundException("User tidak ditemukan");
     }
 
-    return newData;
+    if (updateUserDto.firstName !== undefined) {
+      user.firstName = updateUserDto.firstName;
+    }
+    if (updateUserDto.lastName !== undefined) {
+      user.lastName = updateUserDto.lastName;
+    }
+    if (updateUserDto.email !== undefined) {
+      user.email = updateUserDto.email;
+    }
+    if (updateUserDto.role !== undefined) {
+      user.role = updateUserDto.role;
+    }
+    if (updateUserDto.password !== undefined) {
+      user.password = await Bcrypt.hash(updateUserDto.password, await Bcrypt.genSalt());
+    }
+
+    const saved = await this.userRepository.save(user);
+
+    return {
+      id : saved.id,
+      firstName : saved.firstName,
+      lastName : saved.lastName,
+      email : saved.email,
+      role : saved.role
+    };
   }
 
   remove(id: number) {
