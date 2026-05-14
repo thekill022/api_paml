@@ -197,16 +197,35 @@ class _KatalogManagementViewState extends State<_KatalogManagementView> {
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: const Text('Hapus katalog?'),
+            titlePadding: const EdgeInsets.fromLTRB(20, 14, 12, 0),
+            contentPadding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            actionsPadding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            title: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Hapus katalog?',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Tutup',
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
             content: Text('${item.nama} akan dihapus beserta gambar katalog.'),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Batal'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Hapus'),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.error,
+                  ),
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Hapus'),
+                ),
               ),
             ],
           ),

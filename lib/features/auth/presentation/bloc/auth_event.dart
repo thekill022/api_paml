@@ -37,3 +37,16 @@ class AuthRegisterSubmitted extends AuthEvent {
 }
 
 class AuthLogoutRequested extends AuthEvent {}
+
+class AuthSessionNameUpdated extends AuthEvent {
+  const AuthSessionNameUpdated({
+    required this.firstName,
+    required this.lastName,
+  });
+
+  final String firstName;
+  final String lastName;
+
+  @override
+  List<Object?> get props => [firstName, lastName];
+}

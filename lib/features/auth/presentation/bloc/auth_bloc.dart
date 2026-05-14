@@ -13,6 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginSubmitted>(_onLoginSubmitted);
     on<AuthRegisterSubmitted>(_onRegisterSubmitted);
     on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthSessionNameUpdated>(_onSessionNameUpdated);
   }
 
   final AuthRepository _authRepository;
@@ -80,5 +81,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     await _authRepository.logout();
     emit(const AuthUnauthenticated());
+  }
+
+  void _onSessionNameUpdated(
+    AuthSessionNameUpdated event,
+    Emitter<AuthState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! Authenticated) return;
+    emit(
+      Authenticated(
+        currentState.session.copyWith(
+          firstName: event.firstName,
+          lastName: event.lastName,
+        ),
+      ),
+    );
   }
 }

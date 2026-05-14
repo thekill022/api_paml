@@ -128,22 +128,34 @@ class _KategoriManagementView extends StatelessWidget {
       context: context,
       builder:
           (dialogContext) => AlertDialog(
-            title: const Text('Hapus kategori?'),
+            titlePadding: const EdgeInsets.fromLTRB(20, 14, 12, 0),
+            contentPadding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            actionsPadding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            title: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Hapus kategori?',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Tutup',
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
             content: Text('${kategori.kategori} akan dihapus.'),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                style: TextButton.styleFrom(backgroundColor: Colors.red),
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text(
-                  'Hapus',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.error,
                   ),
+                  onPressed: () => Navigator.pop(dialogContext, true),
+                  child: const Text('Hapus'),
                 ),
               ),
             ],
@@ -220,13 +232,24 @@ class _KategoriFormSheetState extends State<_KategoriFormSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              _isEdit ? 'Edit Kategori' : 'Tambah Kategori',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textPrimary,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _isEdit ? 'Edit Kategori' : 'Tambah Kategori',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Tutup',
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
             ),
             const SizedBox(height: 18),
             TextFormField(

@@ -21,4 +21,20 @@ class AuthSession {
   }
 
   bool get isSuperadmin => role == 'superadmin';
+
+  AuthSession copyWith({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? role,
+  }) {
+    return AuthSession(
+      token: token,
+      userId: userId,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      role: role ?? this.role,
+    );
+  }
 }
