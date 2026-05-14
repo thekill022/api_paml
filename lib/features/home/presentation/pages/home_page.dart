@@ -5,6 +5,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../../katalog/presentation/pages/katalog_management_page.dart';
+import '../../../kategori/presentation/pages/kategori_management_page.dart';
 import '../../../user/presentation/pages/user_management_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -274,6 +276,14 @@ class _MenuTile extends StatelessWidget {
   void _handleTap(BuildContext context) {
     if (item.title == 'Kelola User') {
       Navigator.pushNamed(context, UserManagementPage.routeName);
+      return;
+    }
+    if (item.title == 'Kelola Kategori') {
+      Navigator.pushNamed(context, KategoriManagementPage.routeName);
+      return;
+    }
+    if (item.title == 'Kelola Katalog') {
+      Navigator.pushNamed(context, KatalogManagementPage.routeName);
       return;
     }
 
