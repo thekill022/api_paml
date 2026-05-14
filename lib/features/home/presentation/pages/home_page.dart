@@ -329,18 +329,6 @@ const _superadminMenus = [
     color: Color(0xFFF59E0B),
   ),
   _SuperadminMenuItem(
-    title: 'Mobil Tersedia',
-    subtitle: 'Pantau stok kendaraan aktif',
-    icon: Icons.fact_check_rounded,
-    color: Color(0xFF7C3AED),
-  ),
-  _SuperadminMenuItem(
-    title: 'Laporan',
-    subtitle: 'Ringkasan data operasional',
-    icon: Icons.bar_chart_rounded,
-    color: Color(0xFF0F766E),
-  ),
-  _SuperadminMenuItem(
     title: 'Pengaturan',
     subtitle: 'Konfigurasi aplikasi DriveEase',
     icon: Icons.settings_rounded,

@@ -25,8 +25,22 @@ class KatalogManagementPage extends StatelessWidget {
   }
 }
 
-class _KatalogManagementView extends StatelessWidget {
+class _KatalogManagementView extends StatefulWidget {
   const _KatalogManagementView();
+
+  @override
+  State<_KatalogManagementView> createState() => _KatalogManagementViewState();
+}
+
+class _KatalogManagementViewState extends State<_KatalogManagementView> {
+  final _searchController = TextEditingController();
+  bool? _statusFilter;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,26 +73,62 @@ class _KatalogManagementView extends StatelessWidget {
 
   Widget _body(BuildContext context, KatalogState state) {
     if (state is KatalogLoading || state is KatalogSubmitting) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
+        children: [
+          _KatalogToolbar(
+            controller: _searchController,
+            selectedStatus: _statusFilter,
+            onSearch: _search,
+            onStatusChanged: _setStatusFilter,
+          ),
+          const SizedBox(height: 96),
+          const Center(child: CircularProgressIndicator()),
+        ],
+      );
     }
     if (state is KatalogFailure) {
-      return _MessageState(
-        title: 'Katalog gagal dimuat',
-        subtitle: state.message,
-        icon: Icons.error_outline_rounded,
-        actionLabel: 'Coba Lagi',
-        onAction:
-            () =>
-                context.read<KatalogBloc>().add(const KatalogFetchRequested()),
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
+        children: [
+          _KatalogToolbar(
+            controller: _searchController,
+            selectedStatus: _statusFilter,
+            onSearch: _search,
+            onStatusChanged: _setStatusFilter,
+          ),
+          _MessageState(
+            title: 'Katalog gagal dimuat',
+            subtitle: state.message,
+            icon: Icons.error_outline_rounded,
+            actionLabel: 'Coba Lagi',
+            onAction:
+                () => context.read<KatalogBloc>().add(
+                  const KatalogFetchRequested(),
+                ),
+          ),
+        ],
       );
     }
     if (state is KatalogEmpty) {
-      return _MessageState(
-        title: 'Belum ada mobil',
-        subtitle: 'Tambahkan mobil rental beserta foto, kategori, dan harga.',
-        icon: Icons.directions_car_outlined,
-        actionLabel: 'Tambah Katalog',
-        onAction: () => _openForm(context),
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
+        children: [
+          _KatalogToolbar(
+            controller: _searchController,
+            selectedStatus: _statusFilter,
+            onSearch: _search,
+            onStatusChanged: _setStatusFilter,
+          ),
+          _MessageState(
+            title: 'Data tidak ditemukan',
+            subtitle:
+                'Tidak ada katalog yang cocok dengan pencarian atau filter saat ini.',
+            icon: Icons.directions_car_outlined,
+            actionLabel: 'Reset Filter',
+            onAction: _resetFilter,
+          ),
+        ],
       );
     }
 
@@ -86,10 +136,18 @@ class _KatalogManagementView extends StatelessWidget {
         state is KatalogLoaded ? state.katalog : const <KatalogModel>[];
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 96),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemCount: items.length + 1,
+      separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 14 : 12),
       itemBuilder: (context, index) {
-        final item = items[index];
+        if (index == 0) {
+          return _KatalogToolbar(
+            controller: _searchController,
+            selectedStatus: _statusFilter,
+            onSearch: _search,
+            onStatusChanged: _setStatusFilter,
+          );
+        }
+        final item = items[index - 1];
         return _KatalogTile(
           item: item,
           onEdit: () => _openForm(context, katalog: item),
@@ -97,6 +155,29 @@ class _KatalogManagementView extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _search(String keyword) {
+    setState(() {
+      _statusFilter = null;
+    });
+    context.read<KatalogBloc>().add(KatalogSearchRequested(keyword));
+  }
+
+  void _setStatusFilter(bool? status) {
+    setState(() {
+      _statusFilter = status;
+      _searchController.clear();
+    });
+    context.read<KatalogBloc>().add(KatalogStatusFilterRequested(status));
+  }
+
+  void _resetFilter() {
+    setState(() {
+      _statusFilter = null;
+      _searchController.clear();
+    });
+    context.read<KatalogBloc>().add(const KatalogFetchRequested());
   }
 
   Future<void> _openForm(BuildContext context, {KatalogModel? katalog}) async {
@@ -139,6 +220,71 @@ class _KatalogManagementView extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _KatalogToolbar extends StatelessWidget {
+  const _KatalogToolbar({
+    required this.controller,
+    required this.selectedStatus,
+    required this.onSearch,
+    required this.onStatusChanged,
+  });
+
+  final TextEditingController controller;
+  final bool? selectedStatus;
+  final ValueChanged<String> onSearch;
+  final ValueChanged<bool?> onStatusChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: controller,
+          textInputAction: TextInputAction.search,
+          onSubmitted: onSearch,
+          decoration: InputDecoration(
+            labelText: 'Cari mobil',
+            prefixIcon: const Icon(Icons.search_rounded),
+            suffixIcon:
+                controller.text.isEmpty
+                    ? null
+                    : IconButton(
+                      tooltip: 'Bersihkan pencarian',
+                      onPressed: () {
+                        controller.clear();
+                        onSearch('');
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            FilterChip(
+              label: const Text('Semua'),
+              selected: selectedStatus == null,
+              onSelected: (_) => onStatusChanged(null),
+            ),
+            FilterChip(
+              label: const Text('Tersedia'),
+              selected: selectedStatus == true,
+              onSelected: (_) => onStatusChanged(true),
+            ),
+            FilterChip(
+              label: const Text('Tidak tersedia'),
+              selected: selectedStatus == false,
+              onSelected: (_) => onStatusChanged(false),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 

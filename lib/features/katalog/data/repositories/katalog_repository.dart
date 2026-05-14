@@ -10,14 +10,30 @@ class KatalogRepository {
   static const _tokenKey = 'driveease_access_token';
 
   Future<List<KatalogModel>> fetchKatalog() async {
+    return _fetchList('/katalog', 'Gagal mengambil katalog');
+  }
+
+  Future<List<KatalogModel>> searchKatalog(String keyword) async {
+    if (keyword.trim().isEmpty) return fetchKatalog();
+    return _fetchList(
+      '/katalog/search/${Uri.encodeComponent(keyword.trim())}',
+      'Gagal mencari katalog',
+    );
+  }
+
+  Future<List<KatalogModel>> fetchByStatus(bool status) async {
+    return _fetchList('/katalog/status/$status', 'Gagal memfilter katalog');
+  }
+
+  Future<List<KatalogModel>> _fetchList(String path, String fallback) async {
     final response = await http.get(
-      ApiConstants.uri('/katalog'),
+      ApiConstants.uri(path),
       headers: await _authHeaders(),
     );
 
     final body = _decode(response.body);
     if (response.statusCode != 200) {
-      throw KatalogException(_message(body, 'Gagal mengambil katalog'));
+      throw KatalogException(_message(body, fallback));
     }
     if (body is! List) return [];
     return body

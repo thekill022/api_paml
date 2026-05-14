@@ -11,6 +11,24 @@ class KatalogFetchRequested extends KatalogEvent {
   const KatalogFetchRequested();
 }
 
+class KatalogSearchRequested extends KatalogEvent {
+  const KatalogSearchRequested(this.keyword);
+
+  final String keyword;
+
+  @override
+  List<Object?> get props => [keyword];
+}
+
+class KatalogStatusFilterRequested extends KatalogEvent {
+  const KatalogStatusFilterRequested(this.status);
+
+  final bool? status;
+
+  @override
+  List<Object?> get props => [status];
+}
+
 class KatalogCreateRequested extends KatalogEvent {
   const KatalogCreateRequested({
     required this.nama,
