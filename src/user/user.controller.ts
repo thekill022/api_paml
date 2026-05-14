@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -46,9 +46,23 @@ export class UserController {
   }
 
   @Patch(':id')
-  @Role()
-  @UseGuards(RoleGuard)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Req() request: any) {
+    const user = request.user;
+    const isSuperadmin = user?.role === 'superadmin';
+    const isSelf = Number(user?.userId) === +id;
+
+    if (!isSuperadmin && !isSelf) {
+      throw new ForbiddenException('Hanya bisa mengubah akun sendiri');
+    }
+
+    if (!isSuperadmin) {
+      return this.userService.update(+id, {
+        firstName: updateUserDto.firstName,
+        lastName: updateUserDto.lastName,
+        password: updateUserDto.password,
+      });
+    }
+
     return this.userService.update(+id, updateUserDto);
   }
 
