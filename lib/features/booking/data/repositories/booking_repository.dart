@@ -30,9 +30,11 @@ class BookingRepository {
     required int katalogId,
     required String startDate,
     required String endDate,
+    int? excludeId,
   }) async {
+    final excludeQuery = excludeId == null ? '' : '&excludeId=$excludeId';
     final uri = ApiConstants.uri(
-      '/booking/availability?katalogId=$katalogId&startDate=$startDate&endDate=$endDate',
+      '/booking/availability?katalogId=$katalogId&startDate=$startDate&endDate=$endDate$excludeQuery',
     );
     final response = await http.get(uri, headers: await _authHeaders());
     final body = _decode(response.body);

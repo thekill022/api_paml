@@ -283,6 +283,7 @@ class _BookingFormPageState extends State<BookingFormPage> {
         katalogId: _katalogId!,
         startDate: _formatDate(_startDate!),
         endDate: _formatDate(_endDate!),
+        excludeId: widget.booking?.id,
       );
       if (!mounted) return;
       setState(() => _availability = result);
