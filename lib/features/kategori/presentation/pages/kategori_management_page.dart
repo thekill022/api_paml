@@ -108,76 +108,16 @@ class _KategoriManagementView extends StatelessWidget {
     BuildContext context, {
     KategoriModel? kategori,
   }) async {
-    final controller = TextEditingController(text: kategori?.kategori ?? '');
-    final formKey = GlobalKey<FormState>();
-    final isEdit = kategori != null;
-
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
-          ),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  isEdit ? 'Edit Kategori' : 'Tambah Kategori',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: controller,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Nama kategori',
-                    prefixIcon: Icon(Icons.category_outlined),
-                  ),
-                  validator: (value) {
-                    final text = value?.trim() ?? '';
-                    if (text.isEmpty) return 'Kategori wajib diisi';
-                    if (text.length < 3) return 'Kategori minimal 3 karakter';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 18),
-                FilledButton(
-                  onPressed: () {
-                    if (!formKey.currentState!.validate()) return;
-                    final bloc = context.read<KategoriBloc>();
-                    if (isEdit) {
-                      bloc.add(
-                        KategoriUpdateRequested(
-                          id: kategori.id,
-                          kategori: controller.text.trim(),
-                        ),
-                      );
-                    } else {
-                      bloc.add(KategoriCreateRequested(controller.text.trim()));
-                    }
-                    Navigator.pop(sheetContext);
-                  },
-                  child: Text(isEdit ? 'Simpan' : 'Tambah'),
-                ),
-              ],
-            ),
-          ),
+        return BlocProvider.value(
+          value: context.read<KategoriBloc>(),
+          child: _KategoriFormSheet(kategori: kategori),
         );
       },
     );
-    controller.dispose();
   }
 
   Future<void> _confirmDelete(
@@ -211,6 +151,100 @@ class _KategoriManagementView extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _KategoriFormSheet extends StatefulWidget {
+  const _KategoriFormSheet({this.kategori});
+
+  final KategoriModel? kategori;
+
+  @override
+  State<_KategoriFormSheet> createState() => _KategoriFormSheetState();
+}
+
+class _KategoriFormSheetState extends State<_KategoriFormSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  bool get _isEdit => widget.kategori != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.kategori?.kategori ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final bloc = context.read<KategoriBloc>();
+    if (_isEdit) {
+      bloc.add(
+        KategoriUpdateRequested(
+          id: widget.kategori!.id,
+          kategori: _controller.text.trim(),
+        ),
+      );
+    } else {
+      bloc.add(KategoriCreateRequested(_controller.text.trim()));
+    }
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _isEdit ? 'Edit Kategori' : 'Tambah Kategori',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 18),
+            TextFormField(
+              controller: _controller,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Nama kategori',
+                prefixIcon: Icon(Icons.category_outlined),
+              ),
+              validator: (value) {
+                final text = value?.trim() ?? '';
+                if (text.isEmpty) return 'Kategori wajib diisi';
+                if (text.length < 3) return 'Kategori minimal 3 karakter';
+                return null;
+              },
+            ),
+            const SizedBox(height: 18),
+            FilledButton(
+              onPressed: _submit,
+              child: Text(_isEdit ? 'Simpan' : 'Tambah'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
