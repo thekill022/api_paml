@@ -135,9 +135,16 @@ class _KategoriManagementView extends StatelessWidget {
                 onPressed: () => Navigator.pop(dialogContext, false),
                 child: const Text('Batal'),
               ),
-              FilledButton(
+              TextButton(
+                style: TextButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Hapus'),
+                child: const Text(
+                  'Hapus',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
