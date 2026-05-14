@@ -187,8 +187,8 @@ export class BookingService {
   }
 
   private validateDateRange(startDate: string, endDate: string) {
-    if (endDate < startDate) {
-      throw new BadRequestException('Tanggal selesai tidak boleh sebelum tanggal mulai');
+    if (endDate <= startDate) {
+      throw new BadRequestException('Sewa minimal 1 malam');
     }
   }
 }
