@@ -10,6 +10,8 @@ import { KategoriModule } from './kategori/kategori.module';
 import { Kategori } from './kategori/entities/kategori.entity';
 import { KatalogModule } from './katalog/katalog.module';
 import { Katalog } from './katalog/entities/katalog.entity';
+import { BookingModule } from './booking/booking.module';
+import { Booking } from './booking/entities/booking.entity';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -22,14 +24,15 @@ import { Katalog } from './katalog/entities/katalog.entity';
     username : process.env.USER,
     password : process.env.PASS,
     database : process.env.DB,
-    entities : [User, Kategori, Katalog],
+    entities : [User, Kategori, Katalog, Booking],
     synchronize : true,
     logging : true
   }),
   UserModule,
   AuthModule,
   KategoriModule,
-  KatalogModule
+  KatalogModule,
+  BookingModule
 ],
   controllers: [AppController],
   providers: [AppService],
