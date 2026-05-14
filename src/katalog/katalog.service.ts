@@ -59,7 +59,7 @@ export class KatalogService {
 
   async findByName(nama : string) {
     const katalog = await this.katalogRepository.find({where : {
-      nama : Like(nama)
+      nama : Like(`%${nama}%`)
     },
   relations : {
     kategori : true
@@ -69,6 +69,15 @@ export class KatalogService {
       throw new NotFoundException("Data tidak ditemukan");
     }
     return katalog;
+  }
+
+  async findByStatus(status : boolean) {
+    return await this.katalogRepository.find({where : {
+      status : status
+    },
+  relations : {
+    kategori : true
+  }});
   }
 
   findOne(id: number) {

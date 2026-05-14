@@ -42,6 +42,11 @@ export class KatalogController {
     return this.katalogService.findByName(nama);
   }
 
+  @Get('status/:status')
+  findByStatus(@Param('status') status : string) {
+    return this.katalogService.findByStatus(status == 'true' || status == 'tersedia');
+  }
+
   @Get('kategori/:kategori')
   findByKategori(@Param('kategori') kategori : string) {
     return this.katalogService.findByKategori(+kategori);
