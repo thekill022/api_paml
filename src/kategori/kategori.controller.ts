@@ -21,14 +21,14 @@ export class KategoriController {
     return this.kategoriService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.kategoriService.findOne(+id);
-  }
-
   @Get('/search/:nama')
   findByName(@Param('nama') nama : string) {
     return this.kategoriService.findByName(nama);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.kategoriService.findOne(+id);
   }
 
   @Patch(':id')

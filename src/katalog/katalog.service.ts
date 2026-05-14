@@ -3,10 +3,11 @@ import { UpdateKatalogDto } from './dto/update-katalog.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Katalog } from './entities/katalog.entity';
 import { Like, Repository } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { join } from 'path';
 import { existsSync, unlinkSync } from 'fs';
 
+@Injectable()
 export class KatalogService {
   constructor(
     @InjectRepository(Katalog)
@@ -15,17 +16,23 @@ export class KatalogService {
 
   create(createKatalogDto: CreateKatalogDto, path : string) {
     const ktg = this.katalogRepository.create({
-      ...createKatalogDto,
+      nama : createKatalogDto.nama,
+      harga : Number(createKatalogDto.harga),
+      status : createKatalogDto.status === undefined ? true : String(createKatalogDto.status) == 'true',
       path : path,
       kategori : {
         id : Number(createKatalogDto.kategoriId)
       }
     });
-    this.katalogRepository.save(ktg);
+    return this.katalogRepository.save(ktg);
   }
 
   findAll() {
-  const katalog = this.katalogRepository.find();
+  const katalog = this.katalogRepository.find({
+    relations : {
+      kategori : true
+    }
+  });
 
   if(!katalog) {
     throw new NotFoundException("Data tidak ditemukan");
@@ -53,7 +60,10 @@ export class KatalogService {
   async findByName(nama : string) {
     const katalog = await this.katalogRepository.find({where : {
       nama : Like(nama)
-    }});
+    },
+  relations : {
+    kategori : true
+  }});
 
     if (katalog.length <= 0) {
       throw new NotFoundException("Data tidak ditemukan");
@@ -62,7 +72,7 @@ export class KatalogService {
   }
 
   findOne(id: number) {
-    const katalog = this.katalogRepository.findOne({where : {id}});
+    const katalog = this.katalogRepository.findOne({where : {id}, relations : {kategori : true}});
 
     if(!katalog) {
       throw new NotFoundException("Data tidak ditemukan");
@@ -85,7 +95,17 @@ export class KatalogService {
       katalog.path = path
     }
 
-    Object.assign(katalog, updateKatalogDto);
+    if (updateKatalogDto.nama !== undefined) {
+      katalog.nama = updateKatalogDto.nama;
+    }
+
+    if (updateKatalogDto.harga !== undefined) {
+      katalog.harga = Number(updateKatalogDto.harga);
+    }
+
+    if (updateKatalogDto.status !== undefined) {
+      katalog.status = String(updateKatalogDto.status) == 'true';
+    }
 
     if (updateKatalogDto.kategoriId) {
       katalog.kategori = {id : Number(updateKatalogDto.kategoriId)} as any;

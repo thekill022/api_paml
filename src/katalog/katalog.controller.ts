@@ -1,16 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
 import { KatalogService } from './katalog.service';
 import { CreateKatalogDto } from './dto/create-katalog.dto';
 import { UpdateKatalogDto } from './dto/update-katalog.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { diskStorage } from 'multer';
+import { RoleAdmin } from 'src/kategori/decorator/role-kategori.decorator';
+import { KategoriGuard } from 'src/kategori/role-kategori.guard';
 
 @Controller('katalog')
 export class KatalogController {
   constructor(private readonly katalogService: KatalogService) {}
 
   @Post()
+  @RoleAdmin()
+  @UseGuards(KategoriGuard)
   @UseInterceptors(FileInterceptor('file', {
     storage : diskStorage({
       destination : './public',
@@ -33,22 +37,24 @@ export class KatalogController {
     return this.katalogService.findAll();
   }
 
+  @Get('search/:nama')
+  findByName(@Param('nama') nama : string) {
+    return this.katalogService.findByName(nama);
+  }
+
+  @Get('kategori/:kategori')
+  findByKategori(@Param('kategori') kategori : string) {
+    return this.katalogService.findByKategori(+kategori);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.katalogService.findOne(+id);
   }
 
-  @Get(':nama')
-  findByName(@Param('nama') nama : string) {
-    return this.katalogService.findByName(nama);
-  }
-
-  @Get(':kategori')
-  findByKategori(@Param('kategori') kategori : number) {
-    return this.katalogService.findByKategori(kategori);
-  }
-
   @Patch(':id')
+  @RoleAdmin()
+  @UseGuards(KategoriGuard)
   @UseInterceptors(FileInterceptor('file', {
     storage : diskStorage({
       destination : './public',
@@ -65,6 +71,8 @@ export class KatalogController {
   }
 
   @Delete(':id')
+  @RoleAdmin()
+  @UseGuards(KategoriGuard)
   remove(@Param('id') id: string) {
     return this.katalogService.remove(+id);
   }

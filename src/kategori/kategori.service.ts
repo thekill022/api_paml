@@ -14,7 +14,7 @@ export class KategoriService {
 
   create(createKategoriDto: CreateKategoriDto) {
     const kategori = this.kategoriRepository.create(createKategoriDto);
-    this.kategoriRepository.save(kategori);
+    return this.kategoriRepository.save(kategori);
   }
 
   findAll() {
@@ -45,8 +45,8 @@ export class KategoriService {
     return kategori;
   }
 
-  update(id: number, updateKategoriDto: UpdateKategoriDto) {
-      this.update(id, updateKategoriDto);
+  async update(id: number, updateKategoriDto: UpdateKategoriDto) {
+      await this.kategoriRepository.update(id, updateKategoriDto);
 
       const kategori = this.kategoriRepository.findOne({where : {id}});
       if(!kategori) {
@@ -58,7 +58,7 @@ export class KategoriService {
   remove(id: number) {
     this.kategoriRepository.delete(id);
     return {
-      message : "Berhasil menghapus user dengan id " + id
+      message : "Berhasil menghapus kategori dengan id " + id
     }
   }
 }
