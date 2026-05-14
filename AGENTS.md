@@ -331,6 +331,7 @@ Catatan penting untuk katalog:
 
 - Splash screen atau initial auth check.
 - Login.
+- Registrasi Sebagai Member
 - Home dashboard berisi ringkasan katalog dan kategori.
 - List katalog mobil.
 - Search katalog mobil.
@@ -339,6 +340,7 @@ Catatan penting untuk katalog:
 - Tampilan harga sewa per hari.
 - Status mobil tersedia/tidak tersedia.
 - Logout.
+- Hapus Akun
 
 ### Fitur Admin/Superadmin
 
@@ -353,10 +355,10 @@ Catatan penting untuk katalog:
   - edit kategori.
   - hapus kategori.
 - Manajemen user:
-  - lihat daftar user.
-  - tambah user.
-  - edit user.
-  - hapus user.
+  - lihat daftar user admin.
+  - tambah user admin. (Khusus superadmin)
+  - edit user admin.
+  - hapus user admin. (Khusus superadmin)
 
 ### Fitur State yang Wajib Ada
 
