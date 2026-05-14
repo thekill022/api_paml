@@ -9,7 +9,7 @@ export class CreateUserDto {
     firstName! : string;
 
     @IsString()
-    lastName! : string;
+    lastName? : string;
 
     @IsString()
     @MinLength(8, {message : "Minimal panjang password adalah 8 karakter"})

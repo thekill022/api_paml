@@ -13,6 +13,8 @@ export class UserController {
   ) {}
 
   @Post()
+  @Role()
+  @UseGuards(RoleGuard)
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
@@ -44,11 +46,15 @@ export class UserController {
   }
 
   @Patch(':id')
+  @Role()
+  @UseGuards(RoleGuard)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
+  @Role()
+  @UseGuards(RoleGuard)
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
   }

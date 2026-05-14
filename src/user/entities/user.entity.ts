@@ -17,7 +17,7 @@ export class User {
     firstName! : string;
 
     @Column()
-    lastName! : string;
+    lastName? : string;
 
     @Column({unique : true})
     email! : string;

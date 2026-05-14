@@ -20,13 +20,13 @@ export class UserService {
 
   findAll() {
     return this.userRepository.find({
-      select : ['firstName', 'lastName', 'email', 'role']
+      select : ['id', 'firstName', 'lastName', 'email', 'role']
     });
   }
 
   findOne(id: number) {
     const user =  this.userRepository.findOne({where : {id : id},
-    select : ['firstName', 'lastName', 'email', 'role']
+    select : ['id', 'firstName', 'lastName', 'email', 'role']
     });
 
     if(!user) {
@@ -50,7 +50,7 @@ export class UserService {
     this.userRepository.update(id, updateUserDto);
 
     const newData = this.userRepository.findOne({where : {id},
-    select : ['firstName', 'lastName', 'email', 'role']
+    select : ['id', 'firstName', 'lastName', 'email', 'role']
     });
 
     if (!newData) {
@@ -72,7 +72,7 @@ export class UserService {
       {firstName : Like(nama)},
       {lastName : Like(nama)},
       {email : Like(nama)}],
-      select : ['firstName', 'lastName', 'email', 'role']
+      select : ['id', 'firstName', 'lastName', 'email', 'role']
   })
 
     if(!userData) {
